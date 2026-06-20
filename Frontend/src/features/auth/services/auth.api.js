@@ -2,7 +2,7 @@ import axios from "axios"
 
 
 const api = axios.create({
-    baseURL: "http://localhost:3000",
+    baseURL: "https://gen-ai-resume-check-and-give-plan-for-job.onrender.com",
     withCredentials: true
 })
 
