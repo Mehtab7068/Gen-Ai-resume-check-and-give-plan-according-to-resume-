@@ -4,18 +4,44 @@ import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
 
 const Home = () => {
-
-    const { loading, generateReport,reports } = useInterview()
-    const [ jobDescription, setJobDescription ] = useState("")
-    const [ selfDescription, setSelfDescription ] = useState("")
+    const { loading, generateReport, reports } = useInterview()
+    const [jobDescription, setJobDescription] = useState("")
+    const [selfDescription, setSelfDescription] = useState("")
+    const [selectedFileName, setSelectedFileName] = useState("") // Track filename visually
     const resumeInputRef = useRef()
-
     const navigate = useNavigate()
 
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedFileName(e.target.files[0].name)
+        }
+    }
+
     const handleGenerateReport = async () => {
-        const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        navigate(`/interview/${data._id}`)
+        const resumeFile = resumeInputRef.current?.files[0]
+
+        // Safety validation checklist before making an API network request
+        if (!resumeFile) {
+            alert("Please select and upload your resume PDF file before generating a strategy strategy plan.")
+            return
+        }
+        if (!jobDescription.trim()) {
+            alert("Please paste the target job description to match match against your profile.")
+            return
+        }
+
+        try {
+            const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+
+            // Only attempt navigation if the response payload resolved securely
+            if (data && data._id) {
+                navigate(`/interview/${data._id}`)
+            } else if (data && data.interviewReport && data.interviewReport._id) {
+                navigate(`/interview/${data.interviewReport._id}`)
+            }
+        } catch (error) {
+            console.error("Failed to process form generation pipeline workflow setup context:", error)
+        }
     }
 
     if (loading) {
@@ -28,7 +54,6 @@ const Home = () => {
 
     return (
         <div className='home-page'>
-
             {/* Page Header */}
             <header className='page-header'>
                 <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
@@ -50,11 +75,12 @@ const Home = () => {
                         </div>
                         <textarea
                             onChange={(e) => { setJobDescription(e.target.value) }}
+                            value={jobDescription}
                             className='panel__textarea'
                             placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
                             maxLength={5000}
                         />
-                        <div className='char-counter'>0 / 5000 chars</div>
+                        <div className='char-counter'>{jobDescription.length} / 5000 chars</div>
                     </div>
 
                     {/* Vertical Divider */}
@@ -70,23 +96,42 @@ const Home = () => {
                         </div>
 
                         {/* Upload Resume */}
+                        {/* Upload Resume */}
                         <div className='upload-section'>
                             <label className='section-label'>
                                 Upload Resume
-                                <span className='badge badge--best'>Best Results</span>
+                                <span className='badge badge--best'>Required</span>
                             </label>
-                            <label className='dropzone' htmlFor='resume'>
+                            <label className={`dropzone ${selectedFileName ? 'dropzone--has-file' : ''}`} htmlFor='resume'>
                                 <span className='dropzone__icon'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
+                                    {selectedFileName ? (
+                                        // Green checkmark icon when connected
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    ) : (
+                                        // Original upload icon
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
+                                    )}
                                 </span>
-                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
-                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                                <p className='dropzone__title' style={{ color: selectedFileName ? '#22c55e' : 'inherit', fontWeight: selectedFileName ? '600' : 'normal' }}>
+                                    {selectedFileName ? selectedFileName : "Click to upload or drag & drop"}
+                                </p>
+                                <p className='dropzone__subtitle'>
+                                    {selectedFileName ? "Click again to change file" : "PDF or DOCX (Max 5MB)"}
+                                </p>
+                                <input
+                                    ref={resumeInputRef}
+                                    onChange={handleFileChange}
+                                    hidden
+                                    type='file'
+                                    id='resume'
+                                    name='resume'
+                                    accept='.pdf,.docx'
+                                />
                             </label>
                         </div>
 
                         {/* OR Divider */}
-                        <div className='or-divider'><span>OR</span></div>
+                        <div className='or-divider'><span>AND</span></div>
 
                         {/* Quick Self-Description */}
                         <div className='self-description'>
@@ -95,8 +140,9 @@ const Home = () => {
                                 onChange={(e) => { setSelfDescription(e.target.value) }}
                                 id='selfDescription'
                                 name='selfDescription'
+                                value={selfDescription}
                                 className='panel__textarea panel__textarea--short'
-                                placeholder="Briefly describe your experience, key skills, and years of experience if you don't have a resume handy..."
+                                placeholder="Briefly describe your background, career goals, or any context you want the interviewer tool block context stack engine to know..."
                             />
                         </div>
 
@@ -105,7 +151,7 @@ const Home = () => {
                             <span className='info-box__icon'>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" stroke="#1a1f27" strokeWidth="2" /><line x1="12" y1="16" x2="12.01" y2="16" stroke="#1a1f27" strokeWidth="2" /></svg>
                             </span>
-                            <p>Either a <strong>Resume</strong> or a <strong>Self Description</strong> is required to generate a personalized plan.</p>
+                            <p>Your <strong>Resume</strong> is required to generate a personalized algorithmic extraction layout mapping.</p>
                         </div>
                     </div>
                 </div>
@@ -123,7 +169,7 @@ const Home = () => {
             </div>
 
             {/* Recent Reports List */}
-            {reports.length > 0 && (
+            {reports && reports.length > 0 && (
                 <section className='recent-reports'>
                     <h2>My Recent Interview Plans</h2>
                     <ul className='reports-list'>
