@@ -58,22 +58,51 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 
 
 async function generatePdfFromHtml(htmlContent) {
-    const browser = await puppeteer.launch()
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" })
+    let browser;
+    try {
+        const puppeteer = require('puppeteer'); // or puppeteer-core depending on your setup
+        
+        browser = await puppeteer.launch({
+            headless: 'new', // or true
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage', // Prevents memory limits inside Render containers
+                '--disable-accelerated-2d-canvas',
+                '--disable-gpu'
+            ]
+        });
 
-    const pdfBuffer = await page.pdf({
-        format: "A4", margin: {
-            top: "20mm",
-            bottom: "20mm",
-            left: "15mm",
-            right: "15mm"
-        }
-    })
+        const page = await browser.newPage();
+        
+        // Fix 1: Explicitly reduce the internal navigation timeout block
+        await page.setDefaultNavigationTimeout(60000); // Raise to 60s just in case
 
-    await browser.close()
+        // Fix 2: Change wait rules so it doesn't hang waiting for slow CDNs
+        await page.setContent(htmlContent, { 
+            waitUntil: 'domcontentloaded' // Instant compile as soon as HTML is parsed
+        });
 
-    return pdfBuffer
+        // Generate the PDF binary buffer footprint
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true, // Ensures styles, background colors, and borders appear
+            margin: {
+                top: '20px',
+                right: '20px',
+                bottom: '20px',
+                left: '20px'
+            }
+        });
+
+        await browser.close();
+        return pdfBuffer;
+
+    } catch (error) {
+        if (browser) await browser.close();
+        console.error("Error inside generatePdfFromHtml helper:", error);
+        throw error;
+    }
 }
 
 async function generateResumePdf({ resume, selfDescription, jobDescription }) {
