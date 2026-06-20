@@ -10,36 +10,45 @@ const interviewReportModel = require("../models/interviewReport.model")
  */
 async function generateInterViewReportController(req, res) {
     try {
-        // Critical safety check: Ensure Multer caught the file upload parsing
-        if (!req.file) {
+        // 1. Safety Guardrail: Check if req.file exists BEFORE reading properties
+        if (!req || !req.file || !req.file.buffer) {
             return res.status(400).json({
-                message: "No resume file uploaded. Please upload a valid PDF file."
+                message: "No resume file uploaded or file structure is invalid. Please upload a valid PDF."
+            });
+        }
+
+        // 2. Safely parse the buffer now that we know it exists
+        const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
+        const { selfDescription, jobDescription } = req.body
+
+        const interViewReportByAi = await generateInterviewReport({
+            resume: resumeContent.text,
+            selfDescription,
+            jobDescription
+        })
+
+        const interviewReport = await interviewReportModel.create({
+            user: req.user.id,
+            resume: resumeContent.text,
+            selfDescription,
+            jobDescription,
+            ...interViewReportByAi
+        })
+
+        return res.status(201).json({
+            message: "Interview report generated successfully.",
+            interviewReport
+        })
+
+    } catch (error) {
+        console.error("CRITICAL REPORT GENERATOR ERROR:", error);
+        if (!res.headersSent) {
+            return res.status(500).json({
+                message: "Internal server error during report processing",
+                error: error.message
             });
         }
     }
-
-    const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
-    const { selfDescription, jobDescription } = req.body
-
-    const interViewReportByAi = await generateInterviewReport({
-        resume: resumeContent.text,
-        selfDescription,
-        jobDescription
-    })
-
-    const interviewReport = await interviewReportModel.create({
-        user: req.user.id,
-        resume: resumeContent.text,
-        selfDescription,
-        jobDescription,
-        ...interViewReportByAi
-    })
-
-    res.status(201).json({
-        message: "Interview report generated successfully.",
-        interviewReport
-    })
-
 }
 
 /**
