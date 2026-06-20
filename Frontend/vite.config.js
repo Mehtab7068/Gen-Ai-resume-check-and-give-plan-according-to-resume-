@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/react-swc'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
@@ -12,7 +12,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'public', // Change this from 'dist' or 'build' to 'public'
+    outDir: 'dist', // Change this from 'dist' or 'build' to 'public'
     emptyOutDir: true
   }
 })
