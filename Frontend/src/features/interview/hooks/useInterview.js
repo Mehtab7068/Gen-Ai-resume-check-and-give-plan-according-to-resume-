@@ -3,7 +3,6 @@ import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
 
-
 export const useInterview = () => {
 
     const context = useContext(InterviewContext)
@@ -20,14 +19,17 @@ export const useInterview = () => {
         let response = null
         try {
             response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
-            setReport(response.interviewReport)
+            if (response && response.interviewReport) {
+                setReport(response.interviewReport)
+                return response.interviewReport
+            }
         } catch (error) {
-            console.log(error)
+            console.error("Hook layer error on generation execution workflow context stack:", error)
         } finally {
             setLoading(false)
         }
 
-        return response.interviewReport
+        return null // Secure return intercept fallback if payload execution breaks down
     }
 
     const getReportById = async (interviewId) => {
@@ -35,13 +37,16 @@ export const useInterview = () => {
         let response = null
         try {
             response = await getInterviewReportById(interviewId)
-            setReport(response.interviewReport)
+            if (response && response.interviewReport) {
+                setReport(response.interviewReport)
+                return response.interviewReport
+            }
         } catch (error) {
             console.log(error)
         } finally {
             setLoading(false)
         }
-        return response.interviewReport
+        return null
     }
 
     const getReports = async () => {
@@ -49,14 +54,17 @@ export const useInterview = () => {
         let response = null
         try {
             response = await getAllInterviewReports()
-            setReports(response.interviewReports)
+            if (response && response.interviewReports) {
+                setReports(response.interviewReports)
+                return response.interviewReports
+            }
         } catch (error) {
             console.log(error)
         } finally {
             setLoading(false)
         }
 
-        return response.interviewReports
+        return []
     }
 
     const getResumePdf = async (interviewReportId) => {
@@ -64,12 +72,17 @@ export const useInterview = () => {
         let response = null
         try {
             response = await generateResumePdf({ interviewReportId })
-            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
-            const link = document.createElement("a")
-            link.href = url
-            link.setAttribute("download", `resume_${interviewReportId}.pdf`)
-            document.body.appendChild(link)
-            link.click()
+            if (response) {
+                const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
+                const link = document.createElement("a")
+                const localWindowUrlContext = url;
+                link.href = localWindowUrlContext
+                link.setAttribute("download", `resume_${interviewReportId}.pdf`)
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                window.URL.revokeObjectURL(localWindowUrlContext)
+            }
         }
         catch (error) {
             console.log(error)

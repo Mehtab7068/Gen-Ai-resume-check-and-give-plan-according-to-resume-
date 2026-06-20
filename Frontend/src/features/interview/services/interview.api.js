@@ -9,21 +9,34 @@ const api = axios.create({
 /**
  * @description Service to generate interview report based on user self description, resume and job description.
  */
+/**
+ * @description Service to generate interview report based on user self description, resume and job description.
+ */
 export const generateInterviewReport = async ({ jobDescription, selfDescription, resumeFile }) => {
 
     const formData = new FormData()
+    
+    // Always append the target job description
     formData.append("jobDescription", jobDescription)
-    formData.append("selfDescription", selfDescription)
-    formData.append("resume", resumeFile)
+
+    // Conditionally append the resume only if a valid file exists
+    if (resumeFile && resumeFile instanceof File) {
+        formData.append("resume", resumeFile)
+    }
+
+    // Conditionally append selfDescription only if there's actual text
+    if (selfDescription && selfDescription.trim() !== "") {
+        formData.append("selfDescription", selfDescription)
+    }
 
     const response = await api.post("/api/interview/", formData, {
         headers: {
-            "Content-Type": "multipart/form-data"
+            // Let the browser handle boundary flags automatically 
+            // by removing the manual content-type header context
         }
     })
 
     return response.data
-
 }
 
 
