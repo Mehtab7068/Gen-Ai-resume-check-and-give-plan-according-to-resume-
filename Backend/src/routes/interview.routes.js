@@ -35,7 +35,21 @@ interviewRouter.get("/", authMiddleware.authUser, interviewController.getAllInte
  * @description generate resume pdf on the basis of user self description, resume content and job description.
  * @access private
  */
-interviewRouter.get("/resume/pdf/:interviewReportId", authMiddleware.authUser, interviewController.generateResumePdfController)
+// interviewRouter.get("/resume/pdf/:interviewReportId", authMiddleware.authUser, interviewController.generateResumePdfController)
+interviewRouter.get("/resume/pdf/:interviewReportId", authMiddleware.authUser, async (req, res, next) => {
+    try {
+        await interviewController.generateResumePdfController(req, res, next);
+    } catch (err) {
+        console.error("Router level caught crash:", err);
+        // Ensure headers are still structurally valid even on total failure
+        if (!res.headersSent) {
+            res.status(500).json({ 
+                message: "Fatal crash during generation link", 
+                error: err.message 
+            });
+        }
+    }
+});
 
 
 
