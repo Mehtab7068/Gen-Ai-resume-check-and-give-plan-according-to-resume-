@@ -74,36 +74,42 @@ async function getAllInterviewReportsController(req, res) {
  */
 async function generateResumePdfController(req, res) {
     try {
-        const { interviewReportId } = req.params
+        const { interviewReportId } = req.params;
+        console.log("Fetching report ID:", interviewReportId);
 
-        const interviewReport = await interviewReportModel.findById(interviewReportId)
+        const interviewReport = await interviewReportModel.findById(interviewReportId);
 
         if (!interviewReport) {
-            return res.status(404).json({
-                message: "Interview report not found."
-            })
+            return res.status(404).json({ message: "Interview report not found." });
         }
 
-        const { resume, jobDescription, selfDescription } = interviewReport
+        const { resume, jobDescription, selfDescription } = interviewReport;
 
-        const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription })
+        // Trace if the AI service itself is failing
+        console.log("Calling generateResumePdf AI service...");
+        const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription });
+        console.log("PDF generated successfully, buffer length:", pdfBuffer ? pdfBuffer.length : "null");
 
-        // Critical Production Fixes: Added CORS exposing headers + Length safety
+        if (!pdfBuffer) {
+            return res.status(500).json({ message: "AI service failed to return a PDF buffer." });
+        }
+
         res.set({
             "Content-Type": "application/pdf",
             "Content-Disposition": `attachment; filename="resume_${interviewReportId}.pdf"`,
-            "Content-Length": pdfBuffer.length,
-            "Access-Control-Expose-Headers": "Content-Disposition" // Allows Axios to read the attachment headers
-        })
+            "Access-Control-Expose-Headers": "Content-Disposition"
+        });
 
-        return res.send(pdfBuffer)
+        // Ensure we send it cleanly as a binary buffer chunk
+        return res.end(Buffer.from(pdfBuffer));
         
     } catch (error) {
-        console.error("PDF Download Controller Error:", error);
-        // Prevents the server from hanging up silently on Render
-        if (!res.headersSent) {
-            return res.status(500).json({ message: "Internal server error during PDF generation", error: error.message });
-        }
+        console.error("CRITICAL PDF CONTROLLER ERROR:", error);
+        return res.status(500).json({ 
+            message: "Internal server error during PDF generation", 
+            error: error.message,
+            stack: error.stack 
+        });
     }
 }
 
