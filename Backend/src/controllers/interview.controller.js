@@ -10,33 +10,45 @@ const interviewReportModel = require("../models/interviewReport.model")
  */
 async function generateInterViewReportController(req, res) {
     try {
-        // 1. Safety Guardrail: Ensure Multer successfully parsed the file payload
-        if (!req || !req.file || !req.file.buffer) {
+        const { selfDescription, jobDescription } = req.body;
+
+        // 1. Core Safety Guardrail: Job description is always strictly required
+        if (!jobDescription || jobDescription.trim() === "") {
             return res.status(400).json({
-                message: "No resume file uploaded. Please upload a valid PDF file."
+                message: "Target job description is required to generate a plan."
             });
         }
 
-        // 2. Production Fix: Call pdfParse as a function directly, passing the raw buffer
-        const resumeContent = await pdfParse(req.file.buffer);
-        
-        // Extract plain text from parsed output dictionary 
-        const resumeText = resumeContent.text;
-        
-        const { selfDescription, jobDescription } = req.body;
+        // 2. Either/Or Validation: Ensure at least one profile context option exists
+        const hasFile = req && req.file && req.file.buffer;
+        const hasText = selfDescription && selfDescription.trim() !== "";
 
-        // 3. Forward extracted text content straight to your AI model layer
+        if (!hasFile && !hasText) {
+            return res.status(400).json({
+                message: "Validation failed: Please provide either a resume upload file OR a self description profile."
+            });
+        }
+
+        // 3. Process conditional data layout depending on what was provided
+        let resumeText = "";
+        if (hasFile) {
+            // Only execute pdfParse if a valid file exists in the multer memory buffer
+            const resumeContent = await pdfParse(req.file.buffer);
+            resumeText = resumeContent.text;
+        }
+
+        // 4. Forward extracted elements straight to your AI model layer service
         const interViewReportByAi = await generateInterviewReport({
-            resume: resumeText,
-            selfDescription,
+            resume: resumeText, // Will pass empty string if user typed description instead
+            selfDescription: selfDescription || "",
             jobDescription
         });
 
-        // 4. Save structured parameters securely into MongoDB 
+        // 5. Save structured parameters securely into MongoDB 
         const interviewReport = await interviewReportModel.create({
             user: req.user.id,
             resume: resumeText,
-            selfDescription,
+            selfDescription: selfDescription || "",
             jobDescription,
             ...interViewReportByAi
         });
