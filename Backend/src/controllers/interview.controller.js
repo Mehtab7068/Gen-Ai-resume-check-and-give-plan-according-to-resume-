@@ -10,35 +10,41 @@ const interviewReportModel = require("../models/interviewReport.model")
  */
 async function generateInterViewReportController(req, res) {
     try {
-        // 1. Safety Guardrail: Check if req.file exists BEFORE reading properties
+        // 1. Safety Guardrail: Ensure Multer successfully parsed the file payload
         if (!req || !req.file || !req.file.buffer) {
             return res.status(400).json({
-                message: "No resume file uploaded or file structure is invalid. Please upload a valid PDF."
+                message: "No resume file uploaded. Please upload a valid PDF file."
             });
         }
 
-        // 2. Safely parse the buffer now that we know it exists
-        const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
-        const { selfDescription, jobDescription } = req.body
+        // 2. Production Fix: Call pdfParse as a function directly, passing the raw buffer
+        const resumeContent = await pdfParse(req.file.buffer);
+        
+        // Extract plain text from parsed output dictionary 
+        const resumeText = resumeContent.text;
+        
+        const { selfDescription, jobDescription } = req.body;
 
+        // 3. Forward extracted text content straight to your AI model layer
         const interViewReportByAi = await generateInterviewReport({
-            resume: resumeContent.text,
+            resume: resumeText,
             selfDescription,
             jobDescription
-        })
+        });
 
+        // 4. Save structured parameters securely into MongoDB 
         const interviewReport = await interviewReportModel.create({
             user: req.user.id,
-            resume: resumeContent.text,
+            resume: resumeText,
             selfDescription,
             jobDescription,
             ...interViewReportByAi
-        })
+        });
 
         return res.status(201).json({
             message: "Interview report generated successfully.",
             interviewReport
-        })
+        });
 
     } catch (error) {
         console.error("CRITICAL REPORT GENERATOR ERROR:", error);
