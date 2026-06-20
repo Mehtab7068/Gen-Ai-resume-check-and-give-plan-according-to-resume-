@@ -9,6 +9,14 @@ const interviewReportModel = require("../models/interviewReport.model")
  * @description Controller to generate interview report based on user self description, resume and job description.
  */
 async function generateInterViewReportController(req, res) {
+    try {
+        // Critical safety check: Ensure Multer caught the file upload parsing
+        if (!req.file) {
+            return res.status(400).json({
+                message: "No resume file uploaded. Please upload a valid PDF file."
+            });
+        }
+    }
 
     const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
     const { selfDescription, jobDescription } = req.body
