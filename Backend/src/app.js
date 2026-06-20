@@ -7,9 +7,11 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: "https://gen-ai-resume-check-and-give-plan-a.vercel.app/login",
-    credentials: true
-}))
+  origin: 'https://gen-ai-resume-check-and-give-plan-a.vercel.app', // <-- Remove "/login" from the end!
+  credentials: true, // Keep this if you are using cookies/sessions
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 /* require all the routes here */
 const authRouter = require("./routes/auth.routes")
