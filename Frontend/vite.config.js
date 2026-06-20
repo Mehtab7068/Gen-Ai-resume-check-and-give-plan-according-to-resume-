@@ -1,9 +1,18 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/react-swc' // or @vitejs/plugin-react
+import react from '@vitejs/react-swc'
 
 export default defineConfig({
   plugins: [react()],
-  build: {
-    outDir: 'dist', // <-- Ensure this is set to 'dist'
+  css: {
+    preprocessorOptions: {
+      scss: {
+        silenceDeprecations: ['color-functions'],
+        quietDeps: true
+      }
+    }
   },
+  build: {
+    outDir: 'public', // Change this from 'dist' or 'build' to 'public'
+    emptyOutDir: true
+  }
 })

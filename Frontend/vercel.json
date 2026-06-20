@@ -1,4 +1,4 @@
 {
-  "framework": "vite",
-  "outputDirectory": "build"
+  "cleanUrls": true,
+  "outputDirectory": "public"
 }
