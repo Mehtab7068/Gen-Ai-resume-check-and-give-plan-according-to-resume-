@@ -6,13 +6,30 @@ const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+const allowedOrigins = [
+  'https://gen-ai-resume-check-and-give-plan-a.vercel.app',
+  'http://localhost:5173'
+];
+
 app.use(cors({
-  origin: 'https://gen-ai-resume-check-and-give-plan-a.vercel.app', // <-- Remove "/login" from the end!
-  credentials: true, // Keep this if you are using cookies/sessions
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches your main URL, localhost, or ANY branch deployment from your Vercel account
+    const isVercelPreview = /\.vercel\.app$/.test(origin);
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1;
+    
+    if (isAllowed || isVercelPreview) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
 /* require all the routes here */
 const authRouter = require("./routes/auth.routes")
 const interviewRouter = require("./routes/interview.routes")
