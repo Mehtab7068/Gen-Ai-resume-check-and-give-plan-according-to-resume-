@@ -56,17 +56,14 @@ MONGO_URI=your_mongodb_connection_string
 GEMINI_API_KEY=your_google_gemini_api_key
 JWT_SECRET=your_custom_jwt_secret
 
-3. Install dependencies
-    Install backend dependencies
-    cd server && npm install
-     Install frontend dependencies
-    cd ../client && npm install
-   
-    
-   
+3. Install dependencies <br/>
+    Install backend dependencies<br/>
+    cd server && npm install<br/>
+     Install frontend dependencies<br/>
+    cd ../client && npm install<br/>   
 
-5. Run the Application:
-    From your server directory
+5. Run the Application:<br/>
+    From your server directory<br/>
     npm start
     From your client directory
     npm start
