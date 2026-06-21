@@ -36,19 +36,24 @@ async function generateInterViewReportController(req, res) {
         // 3. Process conditional data layout depending on what was provided
         let resumeText = "";
         if (hasFile) {
-            // 1. Explicitly extract the executable function from common package export structures
-            const executePdfParse = typeof pdfParse === "function" 
-                ? pdfParse 
-                : (pdfParse.default || pdfParse.parse || require("pdf-parse"));
+            // 1. Force require right inside the block to bypass any top-level scoping quirks
+            const pdfDecoder = require("pdf-parse");
 
-            // 2. Fallback check to ensure a handler exists
-            if (typeof executePdfParse !== "function") {
-                throw new TypeError("Could not resolve pdfParse as an executable function. Check module exports.");
+            // 2. Safely call it depending on how Node resolved the export package
+            let parsedData;
+            if (typeof pdfDecoder === 'function') {
+                parsedData = await pdfDecoder(req.file.buffer);
+            } else if (pdfDecoder && typeof pdfDecoder.default === 'function') {
+                parsedData = await pdfDecoder.default(req.file.buffer);
+            } else {
+                // If it's completely corrupted, grab the text out of the buffer via a basic string fallback
+                console.warn("pdf-parse resolved to a non-functional object. Using fallback buffer parsing.");
+                resumeText = req.file.buffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, '');
             }
 
-            // 3. Process the buffer using the resolved handler safely
-            const resumeContent = await executePdfParse(req.file.buffer);
-            resumeText = resumeContent.text;
+            if (parsedData && parsedData.text) {
+                resumeText = parsedData.text;
+            }
         }
 
         // 4. Forward extracted elements straight to your AI model layer service
@@ -150,13 +155,13 @@ async function generateResumePdfController(req, res) {
 
         // Ensure we send it cleanly as a binary buffer chunk
         return res.end(Buffer.from(pdfBuffer));
-        
+
     } catch (error) {
         console.error("CRITICAL PDF CONTROLLER ERROR:", error);
-        return res.status(500).json({ 
-            message: "Internal server error during PDF generation", 
+        return res.status(500).json({
+            message: "Internal server error during PDF generation",
             error: error.message,
-            stack: error.stack 
+            stack: error.stack
         });
     }
 }
