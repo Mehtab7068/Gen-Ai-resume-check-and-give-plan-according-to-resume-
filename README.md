@@ -30,21 +30,7 @@ Check out the live application here: [Live Link](https://gen-ai-resume-check-and
 
 ---
 
-## 📸 Application Preview
 
-### 1. Authentication Layer
-*Clean, minimal user registration and login portals to keep user interview history private and persistent.*
-| Login Screen | Register Screen |
-| :---: | :---: |
-| ![Login UI](https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO_NAME/main/path-to-your-image/login.png) | ![Register UI](https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO_NAME/main/path-to-your-image/register.png) |
-
-### 2. Strategy Setup Dashboard
-*Input target job metrics alongside your resume or a quick self-description to initialize the Gemini engine processing layer.*
-![Setup Dashboard](https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO_NAME/main/path-to-your-image/setup.png)
-
-### 3. AI Insights & Interview Strategy
-*Review your overall role match score, missing skills, and dynamic tech questions customized to your background.*
-![Interview Insights](https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO_NAME/main/path-to-your-image/insights.png)
 
 ---
 
