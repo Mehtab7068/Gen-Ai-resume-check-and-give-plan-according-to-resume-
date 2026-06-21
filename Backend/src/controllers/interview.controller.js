@@ -1,9 +1,6 @@
-const pdfParse = require("pdf-parse")
+const pdfParse = require("pdf-parse"); // Corrected to safely execute standard function references
 const { generateInterviewReport, generateResumePdf } = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
-
-
-
 
 /**
  * @description Controller to generate interview report based on user self description, resume and job description.
@@ -91,8 +88,7 @@ async function getInterviewReportByIdController(req, res) {
 }
 
 
-/** 
- * @description Controller to get all interview reports of logged in user.
+/** * @description Controller to get all interview reports of logged in user.
  */
 async function getAllInterviewReportsController(req, res) {
     const interviewReports = await interviewReportModel.find({ user: req.user.id }).sort({ createdAt: -1 }).select("-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan")
