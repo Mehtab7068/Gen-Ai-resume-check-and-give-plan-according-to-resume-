@@ -57,17 +57,16 @@ GEMINI_API_KEY=your_google_gemini_api_key
 JWT_SECRET=your_custom_jwt_secret
 
 3. Install dependencies
-   # Install backend dependencies
+    Install backend dependencies
 cd server && npm install
 
-# Install frontend dependencies
+ Install frontend dependencies
 cd ../client && npm install
 
 4. Run the Application:
-   # From your server directory
+    From your server directory
 npm start
 
 # From your client directory
 npm start
 
-5.
