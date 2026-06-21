@@ -36,8 +36,18 @@ async function generateInterViewReportController(req, res) {
         // 3. Process conditional data layout depending on what was provided
         let resumeText = "";
         if (hasFile) {
-            // Only execute pdfParse if a valid file exists in the multer memory buffer
-            const resumeContent = await pdfParse(req.file.buffer);
+            // 1. Explicitly extract the executable function from common package export structures
+            const executePdfParse = typeof pdfParse === "function" 
+                ? pdfParse 
+                : (pdfParse.default || pdfParse.parse || require("pdf-parse"));
+
+            // 2. Fallback check to ensure a handler exists
+            if (typeof executePdfParse !== "function") {
+                throw new TypeError("Could not resolve pdfParse as an executable function. Check module exports.");
+            }
+
+            // 3. Process the buffer using the resolved handler safely
+            const resumeContent = await executePdfParse(req.file.buffer);
             resumeText = resumeContent.text;
         }
 
