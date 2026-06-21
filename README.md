@@ -58,15 +58,17 @@ JWT_SECRET=your_custom_jwt_secret
 
 3. Install dependencies
     Install backend dependencies
-cd server && npm install
+    cd server && npm install
+     Install frontend dependencies
+    cd ../client && npm install
+   
+    
+   
 
- Install frontend dependencies
-cd ../client && npm install
-
-4. Run the Application:
+5. Run the Application:
     From your server directory
-npm start
-
-# From your client directory
-npm start
+    npm start
+    From your client directory
+    npm start
+    
 
