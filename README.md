@@ -63,3 +63,25 @@ Follow these steps to run the platform locally on your machine:
    ```bash
    git clone [https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git)
    cd YOUR_REPO_NAME
+2. Setup Server Environment Variables:
+  Create a .env file in your backend server directory:
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+GEMINI_API_KEY=your_google_gemini_api_key
+JWT_SECRET=your_custom_jwt_secret
+
+3. Install dependencies
+   # Install backend dependencies
+cd server && npm install
+
+# Install frontend dependencies
+cd ../client && npm install
+
+4. Run the Application:
+   # From your server directory
+npm start
+
+# From your client directory
+npm start
+
+5.
