@@ -1,4 +1,11 @@
-const pdfParse = require("pdf-parse"); // Corrected to safely execute standard function references
+// const pdfParse = require("pdf-parse"); // Corrected to safely execute standard function references
+let pdfParse = require("pdf-parse");
+// Fallback check: If it's imported as an object instead of a direct function
+if (typeof pdfParse !== "function" && pdfParse.default) {
+    pdfParse = pdfParse.default;
+} else if (typeof pdfParse !== "function" && typeof pdfParse.parse === "function") {
+    pdfParse = pdfParse.parse;
+}
 const { generateInterviewReport, generateResumePdf } = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
 
