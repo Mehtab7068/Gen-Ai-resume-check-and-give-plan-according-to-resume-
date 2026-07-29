@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+import Loader from "../../auth/components/loader.jsx"
 
 const Home = () => {
     const { loading, generateReport, reports } = useInterview()
@@ -56,6 +57,15 @@ const Home = () => {
         } catch (error) {
             console.error("Failed to generate interview strategy:", error)
         }
+    }
+
+    // Early return for loading state (matches your Login component pattern)
+    if (loading) {
+        return (
+            <main style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Loader className="loader" message="Generating your interview strategy..." />
+            </main>
+        )
     }
 
     // Determine states based on user choice

@@ -1,26 +1,41 @@
-import React,{useState} from 'react'
+import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
+import toast from 'react-hot-toast'
 import "../auth.form.scss"
 import { useAuth } from '../hooks/useAuth'
+import Loader from "../components/loader"
 
 const Login = () => {
-
     const { loading, handleLogin } = useAuth()
     const navigate = useNavigate()
 
-    const [ email, setEmail ] = useState("")
-    const [ password, setPassword ] = useState("")
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        await handleLogin({email,password})
-        navigate('/')
+
+        if (!email || !password) {
+            toast.error('Please fill in all fields')
+            return
+        }
+
+        try {
+            await handleLogin({ email, password })
+            toast.success('Welcome back! 👋')
+            navigate('/')
+        } catch (error) {
+            toast.error(error?.response?.data?.message || 'Login failed. Please try again.')
+        }
     }
 
-    if(loading){
-        return (<main><h1>Loading.......</h1></main>)
+    if (loading) {
+        return (
+            <main>
+                <Loader className="loader" message="Logging you in..." />
+            </main>
+        )
     }
-
 
     return (
         <main>
@@ -30,18 +45,32 @@ const Login = () => {
                     <div className="input-group">
                         <label htmlFor="email">Email</label>
                         <input
-                            onChange={(e) => { setEmail(e.target.value) }}
-                            type="email" id="email" name='email' placeholder='Enter email address' />
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter email address"
+                        />
                     </div>
                     <div className="input-group">
                         <label htmlFor="password">Password</label>
                         <input
-                            onChange={(e) => { setPassword(e.target.value) }}
-                            type="password" id="password" name='password' placeholder='Enter password' />
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter password"
+                        />
                     </div>
-                    <button className='button primary-button' >Login</button>
+                    <button type="submit" className="button primary-button">
+                        Login
+                    </button>
                 </form>
-                <p>Don't have an account? <Link to={"/register"} >Register</Link> </p>
+                <p>
+                    Don't have an account? <Link to="/register">Register</Link>
+                </p>
             </div>
         </main>
     )
