@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router'
 import toast from 'react-hot-toast'
 import "../auth.form.scss"
 import { useAuth } from '../hooks/useAuth'
-import Loader from "../components/loader"
 
 const Login = () => {
     const { loading, handleLogin } = useAuth()
@@ -29,16 +28,8 @@ const Login = () => {
         }
     }
 
-    if (loading) {
-        return (
-            <main>
-                <Loader className="loader" message="Logging you in..." />
-            </main>
-        )
-    }
-
     return (
-        <main>
+        <main className="auth-page">
             <div className="form-container">
                 <h1>Login</h1>
                 <form onSubmit={handleSubmit}>
@@ -64,8 +55,8 @@ const Login = () => {
                             placeholder="Enter password"
                         />
                     </div>
-                    <button type="submit" className="button primary-button">
-                        Login
+                    <button type="submit" className="button primary-button" disabled={loading}>
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
                 <p>

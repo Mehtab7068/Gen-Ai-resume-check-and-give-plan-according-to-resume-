@@ -1,8 +1,13 @@
 import axios from "axios"
 
+// Configure API client. Use VITE_API_URL environment variable (set in .env file) for flexibility.
+// Fallback to localhost development server if not provided.
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000"
+
 const api = axios.create({
-    baseURL: "https://gen-ai-resume-check-and-give-plan-for-job.onrender.com",
-    withCredentials: true
+    baseURL,
+    // Enable sending cookies for session authentication when the backend sets them.
+    withCredentials: true,
 })
 
 export async function register({ username, email, password }) {

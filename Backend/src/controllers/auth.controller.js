@@ -157,10 +157,13 @@ const jwt = require("jsonwebtoken")
 const tokenBlacklistModel = require("../models/blacklist.model")
 
 // Helper configuration object for cross-domain production cookies
+// Cookie options adapt to environment. In production (HTTPS) we need secure:true and sameSite:'none'.
+// For local development over HTTP, secure must be false otherwise the cookie is rejected.
+const isProd = process.env.NODE_ENV === "production"
 const cookieOptions = {
     httpOnly: true,
-    secure: true,      // Must be true for HTTPS (Render provides HTTPS)
-    sameSite: "none",  // Mandatory flag for cross-domain cookie transfers
+    secure: isProd, // true only in production (HTTPS)
+    sameSite: isProd ? "none" : "lax", // lax works for same‑origin dev
     maxAge: 24 * 60 * 60 * 1000 // 1 day matching your JWT expiration
 };
 
@@ -180,7 +183,7 @@ async function registerUserController(req, res) {
     }
 
     const isUserAlreadyExists = await userModel.findOne({
-        $or: [ { username }, { email } ]
+        $or: [{ username }, { email }]
     })
 
     if (isUserAlreadyExists) {
@@ -251,7 +254,7 @@ async function loginUserController(req, res) {
 
     // Applied cross-domain cookie options
     res.cookie("token", token, cookieOptions)
-    
+
     res.status(200).json({
         message: "User loggedIn successfully.",
         user: {

@@ -1,7 +1,11 @@
 import axios from "axios";
 
+// Use the same configurable base URL as the auth API.
+// VITE_API_URL is defined in the frontend .env file; fallback to localhost for dev.
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000"
+
 const api = axios.create({
-    baseURL: "https://gen-ai-resume-check-and-give-plan-for-job.onrender.com",
+    baseURL,
     withCredentials: true,
 })
 
@@ -15,7 +19,7 @@ const api = axios.create({
 export const generateInterviewReport = async ({ jobDescription, selfDescription, resumeFile }) => {
 
     const formData = new FormData()
-    
+
     // Always append the target job description
     formData.append("jobDescription", jobDescription)
 

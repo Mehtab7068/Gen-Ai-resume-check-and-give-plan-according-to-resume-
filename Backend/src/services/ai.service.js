@@ -22,7 +22,7 @@ const interviewReportSchema = z.object({
     })).describe("Behavioral questions that can be asked in the interview along with their intention and how to answer them"),
     skillGaps: z.array(z.object({
         skill: z.string().describe("The skill which the candidate is lacking"),
-        severity: z.enum([ "low", "medium", "high" ]).describe("The severity of this skill gap, i.e. how important is this skill for the job and how much it can impact the candidate's chances")
+        severity: z.enum(["low", "medium", "high"]).describe("The severity of this skill gap, i.e. how important is this skill for the job and how much it can impact the candidate's chances")
     })).describe("List of skill gaps in the candidate's profile along with their severity"),
     preparationPlan: z.array(z.object({
         day: z.number().describe("The day number in the preparation plan, starting from 1"),
@@ -35,10 +35,27 @@ const interviewReportSchema = z.object({
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
 
-    const prompt = `Generate an interview report for a candidate with the following details:
-                        Resume: ${resume}
-                        Self Description: ${selfDescription}
-                        Job Description: ${jobDescription}
+    // Enhanced prompt for interview report generation. It explicitly instructs the model to:
+    //  • Follow the JSON schema defined by `interviewReportSchema`.
+    //  • Produce concise, well‑structured content without extra explanatory text.
+    //  • Use professional language and avoid AI‑generated phrasing.
+    //  • Include all required sections (matchScore, technicalQuestions, behavioralQuestions,
+    //    skillGaps, preparationPlan, title) exactly as defined.
+    // Prompt now explicitly asks the model to incorporate the self‑description content.
+    const prompt = `You are an expert interview coach. Generate an interview report for a candidate using ONLY the JSON schema provided in the request configuration. Do NOT add any additional text outside the JSON object.
+
+Candidate details:
+Resume: ${resume}
+Self Description: ${selfDescription}
+Job Description: ${jobDescription}
+
+Guidelines:
+• Populate every field defined in the schema (matchScore, technicalQuestions, behavioralQuestions, skillGaps, preparationPlan, title).
+• Use the provided Self Description to tailor the recommendations – reference the candidate’s experience, tech stack, and background where relevant.
+• Keep answers concise, actionable, and professional.
+• Use clear bullet‑style phrasing for questions and answers.
+• Ensure the output is valid JSON that matches the schema exactly.
+• Avoid any phrasing that suggests the content was AI‑generated.
 `
 
     const response = await ai.models.generateContent({
@@ -61,7 +78,7 @@ async function generatePdfFromHtml(htmlContent) {
     let browser;
     try {
         const puppeteer = require('puppeteer'); // or puppeteer-core depending on your setup
-        
+
         browser = await puppeteer.launch({
             headless: 'new', // or true
             args: [
@@ -74,12 +91,12 @@ async function generatePdfFromHtml(htmlContent) {
         });
 
         const page = await browser.newPage();
-        
+
         // Fix 1: Explicitly reduce the internal navigation timeout block
         await page.setDefaultNavigationTimeout(60000); // Raise to 60s just in case
 
         // Fix 2: Change wait rules so it doesn't hang waiting for slow CDNs
-        await page.setContent(htmlContent, { 
+        await page.setContent(htmlContent, {
             waitUntil: 'domcontentloaded' // Instant compile as soon as HTML is parsed
         });
 
@@ -111,18 +128,24 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
         html: z.string().describe("The HTML content of the resume which can be converted to PDF using any library like puppeteer")
     })
 
-    const prompt = `Generate resume for a candidate with the following details:
-                        Resume: ${resume}
-                        Self Description: ${selfDescription}
-                        Job Description: ${jobDescription}
+    // Enhanced prompt for resume generation. It asks for a single‑field JSON with HTML content,
+    // ensures ATS‑friendliness, professional tone, and a clean design.
+    const prompt = `You are a professional resume writer. Generate a resume for a candidate and return it as a JSON object with a single field "html" containing the complete HTML markup.
 
-                        the response should be a JSON object with a single field "html" which contains the HTML content of the resume which can be converted to PDF using any library like puppeteer.
-                        The resume should be tailored for the given job description and should highlight the candidate's strengths and relevant experience. The HTML content should be well-formatted and structured, making it easy to read and visually appealing.
-                        The content of resume should be not sound like it's generated by AI and should be as close as possible to a real human-written resume.
-                        you can highlight the content using some colors or different font styles but the overall design should be simple and professional.
-                        The content should be ATS friendly, i.e. it should be easily parsable by ATS systems without losing important information.
-                        The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
-                    `
+Candidate details:
+Resume: ${resume}
+Self Description: ${selfDescription}
+Job Description: ${jobDescription}
+
+Requirements for the HTML resume:
+• Use a clean, simple, professional layout (no excessive colors or fonts).
+• Incorporate the Self Description to highlight the candidate’s unique experience, tech stack, and achievements.
+• Include standard sections: Header with name/contact, Summary, Experience, Education, Skills, Projects (if relevant).
+• Ensure the HTML is well‑structured, uses semantic tags, and is ATS‑friendly (plain text content, minimal tables/graphics).
+• Keep the length to 1‑2 pages when printed to PDF.
+• Write in a human‑like tone; avoid phrasing that sounds AI‑generated.
+• The JSON must contain ONLY the "html" field and be valid according to the provided schema.
+`
 
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",

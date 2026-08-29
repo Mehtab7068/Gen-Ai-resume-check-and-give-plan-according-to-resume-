@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
-import Loader from "../components/loader"
 
 const Register = () => {
     const navigate = useNavigate()
@@ -29,12 +28,8 @@ const Register = () => {
         }
     }
 
-    if (loading) {
-        return (<main> <Loader className='loader' message="Creating your account..." /></main>)
-    }
-
     return (
-        <main>
+        <main className="auth-page">
             <div className="form-container">
                 <h1>Register</h1>
 
@@ -44,10 +39,10 @@ const Register = () => {
                         <input
                             value={username}
                             onChange={(e) => { setUsername(e.target.value) }}
-                            type="text" 
-                            id="username" 
-                            name='username' 
-                            placeholder='Enter username' 
+                            type="text"
+                            id="username"
+                            name='username'
+                            placeholder='Enter username'
                         />
                     </div>
                     <div className="input-group">
@@ -55,10 +50,10 @@ const Register = () => {
                         <input
                             value={email}
                             onChange={(e) => { setEmail(e.target.value) }}
-                            type="email" 
-                            id="email" 
-                            name='email' 
-                            placeholder='Enter email address' 
+                            type="email"
+                            id="email"
+                            name='email'
+                            placeholder='Enter email address'
                         />
                     </div>
                     <div className="input-group">
@@ -66,14 +61,16 @@ const Register = () => {
                         <input
                             value={password}
                             onChange={(e) => { setPassword(e.target.value) }}
-                            type="password" 
-                            id="password" 
-                            name='password' 
-                            placeholder='Enter password' 
+                            type="password"
+                            id="password"
+                            name='password'
+                            placeholder='Enter password'
                         />
                     </div>
 
-                    <button type="submit" className='button primary-button'>Register</button>
+                    <button type="submit" className='button primary-button' disabled={loading}>
+                        {loading ? 'Creating account...' : 'Register'}
+                    </button>
                 </form>
 
                 <p>Already have an account? <Link to={"/login"}>Login</Link></p>

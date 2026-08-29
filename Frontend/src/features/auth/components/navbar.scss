@@ -1,0 +1,162 @@
+$bg-navbar: rgba(13, 17, 23, 0.85);
+$border-color: #2a3348;
+$text-primary: #e6edf3;
+$text-muted: #7d8590;
+$accent: #ff2d78;
+$accent-hover: #ff4d8f;
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 2rem;
+    background-color: $bg-navbar;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid $border-color;
+    animation: navbar-slide-in 0.4s ease-out;
+
+    &__brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: $text-primary;
+        text-decoration: none;
+        letter-spacing: -0.02em;
+        transition: opacity 0.2s;
+
+        &:hover {
+            opacity: 0.85;
+        }
+    }
+
+    &__logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 0.6rem;
+        background: linear-gradient(135deg, $accent, #7c3aed);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba($accent, 0.35);
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    &__user {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.3rem 0.85rem 0.3rem 0.3rem;
+        background-color: rgba(255, 255, 255, 0.04);
+        border: 1px solid $border-color;
+        border-radius: 2rem;
+    }
+
+    &__avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, $accent, #7c3aed);
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    &__username {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: $text-primary;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 1.1rem;
+        border-radius: 0.55rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        font-family: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+
+        &--primary {
+            background: linear-gradient(135deg, $accent, #e11d63);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba($accent, 0.3);
+
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba($accent, 0.45);
+            }
+        }
+
+        &--ghost {
+            color: $text-primary;
+            border-color: $border-color;
+            background: transparent;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.06);
+                border-color: lighten($border-color, 10%);
+            }
+        }
+
+        &--logout {
+            color: #ff6b6b;
+            border-color: rgba(#ff6b6b, 0.35);
+            background: rgba(#ff6b6b, 0.08);
+
+            &:hover {
+                background: rgba(#ff6b6b, 0.16);
+                border-color: rgba(#ff6b6b, 0.6);
+            }
+        }
+
+        &:active {
+            transform: translateY(0) scale(0.98);
+        }
+    }
+}
+
+@keyframes navbar-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 560px) {
+    .navbar {
+        padding: 0.75rem 1rem;
+
+        &__username {
+            display: none;
+        }
+    }
+}

@@ -2,10 +2,13 @@ import React, { useState, useRef } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
-import Loader from "../../auth/components/loader.jsx"
+import toast from 'react-hot-toast'
+import { useAuth } from '../../auth/hooks/useAuth.js'
+import Navbar from '../../auth/components/Navbar.jsx'
 
 const Home = () => {
     const { loading, generateReport, reports } = useInterview()
+    const { user } = useAuth()
     const [jobDescription, setJobDescription] = useState("")
     const [selfDescription, setSelfDescription] = useState("")
     const [selectedFileName, setSelectedFileName] = useState("")
@@ -27,28 +30,35 @@ const Home = () => {
     }
 
     const handleGenerateReport = async () => {
+        // Require authentication before generating a report
+        if (!user) {
+            toast.error('Please login to generate your interview strategy')
+            navigate('/login')
+            return
+        }
+
         const resumeFile = resumeInputRef.current?.files[0]
-        
+
         // 1. Core target job validation
         if (!jobDescription.trim()) {
-            alert("Please paste the target job description.")
+            toast.error("Please paste the target job description.")
             return
         }
 
         // 2. Either/Or validation logic
         if (!resumeFile && !selfDescription.trim()) {
-            alert("Please provide either a Resume upload OR a Self Description to proceed.")
+            toast.error("Please provide either a Resume upload OR a Self Description to proceed.")
             return
         }
 
         try {
             // Pass whatever is active; the hooks/backend will handle the filled parameters
-            const data = await generateReport({ 
-                jobDescription, 
-                selfDescription: resumeFile ? "" : selfDescription, 
-                resumeFile: resumeFile || null 
+            const data = await generateReport({
+                jobDescription,
+                selfDescription: resumeFile ? "" : selfDescription,
+                resumeFile: resumeFile || null
             })
-            
+
             if (data && data._id) {
                 navigate(`/interview/${data._id}`)
             } else if (data && data.interviewReport && data.interviewReport._id) {
@@ -56,16 +66,8 @@ const Home = () => {
             }
         } catch (error) {
             console.error("Failed to generate interview strategy:", error)
+            toast.error("Failed to generate interview strategy. Please try again.")
         }
-    }
-
-    // Early return for loading state (matches your Login component pattern)
-    if (loading) {
-        return (
-            <main style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Loader className="loader" message="Generating your interview strategy..." />
-            </main>
-        )
     }
 
     // Determine states based on user choice
@@ -74,6 +76,7 @@ const Home = () => {
 
     return (
         <div className='home-page'>
+            <Navbar />
             <header className='page-header'>
                 <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
                 <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
@@ -130,13 +133,13 @@ const Home = () => {
                                 <p className='dropzone__title' style={{ color: isFileActive ? '#22c55e' : 'inherit', fontWeight: isFileActive ? '600' : 'normal' }}>
                                     {isFileActive ? selectedFileName : "Click to upload or drag & drop"}
                                 </p>
-                                <input 
-                                    ref={resumeInputRef} 
-                                    onChange={handleFileChange} 
-                                    hidden 
-                                    type='file' 
-                                    id='resume' 
-                                    name='resume' 
+                                <input
+                                    ref={resumeInputRef}
+                                    onChange={handleFileChange}
+                                    hidden
+                                    type='file'
+                                    id='resume'
+                                    name='resume'
                                     accept='.pdf,.docx'
                                     disabled={isTextActive}
                                 />
@@ -181,9 +184,18 @@ const Home = () => {
 
                 <div className='interview-card__footer'>
                     <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
-                    <button onClick={handleGenerateReport} className='generate-btn'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
-                        Generate My Interview Strategy
+                    <button onClick={handleGenerateReport} disabled={loading} className='generate-btn'>
+                        {loading ? (
+                            <>
+                                <span className='btn-spinner' />
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
+                                Generate My Interview Strategy
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
