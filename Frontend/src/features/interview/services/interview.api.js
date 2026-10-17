@@ -1,8 +1,12 @@
 import axios from "axios";
 
-// Use the same configurable base URL as the auth API.
-// VITE_API_URL is defined in the frontend .env file; fallback to localhost for dev.
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000"
+// Vercel builds must set VITE_API_URL to the deployed backend URL.
+const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
+const hasLocalApiUrl = configuredApiUrl && /localhost|127\.0\.0\.1/.test(configuredApiUrl)
+const baseURL = configuredApiUrl && (!hasLocalApiUrl || isLocalHost)
+    ? configuredApiUrl
+    : isLocalHost ? "http://localhost:3000" : ""
 
 const api = axios.create({
     baseURL,
