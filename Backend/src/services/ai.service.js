@@ -100,6 +100,24 @@ async function generatePdfFromHtml(htmlContent) {
             waitUntil: 'domcontentloaded' // Instant compile as soon as HTML is parsed
         });
 
+        await page.emulateMediaType('print');
+        await page.addStyleTag({
+            content: `
+                @page { size: A4 portrait; margin: 20px; }
+                html, body { width: 754px !important; margin: 0 !important; }
+                body { box-sizing: border-box !important; }
+            `
+        });
+
+        const contentHeight = await page.evaluate(() => Math.max(
+            document.documentElement.scrollHeight,
+            document.body.scrollHeight
+        ));
+        const fitScale = Math.min(1, 1050 / contentHeight);
+        await page.addStyleTag({
+            content: `body { zoom: ${fitScale} !important; }`
+        });
+
         // Generate the PDF binary buffer footprint
         const pdfBuffer = await page.pdf({
             format: 'A4',
@@ -142,7 +160,7 @@ Requirements for the HTML resume:
 • Incorporate the Self Description to highlight the candidate’s unique experience, tech stack, and achievements.
 • Include standard sections: Header with name/contact, Summary, Experience, Education, Skills, Projects (if relevant).
 • Ensure the HTML is well‑structured, uses semantic tags, and is ATS‑friendly (plain text content, minimal tables/graphics).
-• Keep the length to 1‑2 pages when printed to PDF.
+• Keep the resume concise enough to fit on one A4 page when printed.
 • Write in a human‑like tone; avoid phrasing that sounds AI‑generated.
 • The JSON must contain ONLY the "html" field and be valid according to the provided schema.
 `
@@ -165,4 +183,52 @@ Requirements for the HTML resume:
 
 }
 
-module.exports = { generateInterviewReport, generateResumePdf }
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character])
+}
+
+async function generateInterviewPlanPdf({ title, matchScore, preparationPlan }) {
+    const planSections = preparationPlan.map(({ day, focus, tasks }) => `
+        <section class="day">
+            <h2>Day ${escapeHtml(day)} <span>${escapeHtml(focus)}</span></h2>
+            <ul>${tasks.map((task) => `<li>${escapeHtml(task)}</li>`).join("")}</ul>
+        </section>
+    `).join("")
+
+    const htmlContent = `<!doctype html>
+        <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    * { box-sizing: border-box; }
+                    body { color: #17212b; font-family: Arial, sans-serif; font-size: 11px; line-height: 1.35; }
+                    header { border-bottom: 2px solid #245b67; margin-bottom: 12px; padding-bottom: 8px; }
+                    h1 { color: #163f49; font-size: 22px; margin: 0 0 4px; }
+                    .meta { color: #53636b; font-size: 10px; }
+                    .plan { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
+                    .day { border-bottom: 1px solid #d6dfe2; break-inside: avoid; padding: 0 0 6px; }
+                    h2 { color: #163f49; font-size: 12px; margin: 0 0 4px; }
+                    h2 span { color: #17212b; font-weight: 600; }
+                    ul { margin: 0; padding-left: 15px; }
+                    li { margin: 0 0 2px; }
+                </style>
+            </head>
+            <body>
+                <header>
+                    <h1>Interview Preparation Plan</h1>
+                    <div class="meta">${escapeHtml(title)} | Match score: ${escapeHtml(matchScore)}%</div>
+                </header>
+                <main class="plan">${planSections}</main>
+            </body>
+        </html>`
+
+    return generatePdfFromHtml(htmlContent)
+}
+
+module.exports = { generateInterviewReport, generateResumePdf, generateInterviewPlanPdf }

@@ -21,6 +21,13 @@ interviewRouter.post("/", authMiddleware.authUser, upload.single("resume"), inte
  */
 interviewRouter.get("/report/:interviewId", authMiddleware.authUser, interviewController.getInterviewReportByIdController)
 
+/**
+ * @route GET /api/interview/plan/pdf/:interviewReportId
+ * @description download the saved preparation plan as a one-page PDF.
+ * @access private
+ */
+interviewRouter.get("/plan/pdf/:interviewReportId", authMiddleware.authUser, interviewController.generateInterviewPlanPdfController)
+
 
 /**
  * @route GET /api/interview/
@@ -43,9 +50,9 @@ interviewRouter.get("/resume/pdf/:interviewReportId", authMiddleware.authUser, a
         console.error("Router level caught crash:", err);
         // Ensure headers are still structurally valid even on total failure
         if (!res.headersSent) {
-            res.status(500).json({ 
-                message: "Fatal crash during generation link", 
-                error: err.message 
+            res.status(500).json({
+                message: "Fatal crash during generation link",
+                error: err.message
             });
         }
     }

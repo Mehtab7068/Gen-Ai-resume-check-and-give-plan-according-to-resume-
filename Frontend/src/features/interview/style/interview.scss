@@ -60,6 +60,16 @@ $severity-low: #3fb950;
     justify-content: space-between;
     gap: 0.25rem;
 
+    .interview-download-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        .button {
+            width: 100%;
+        }
+    }
+
 
 
 

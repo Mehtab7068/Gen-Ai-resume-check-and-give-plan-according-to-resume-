@@ -1,4 +1,4 @@
-import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf } from "../services/interview.api"
+import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf, generateInterviewPlanPdf } from "../services/interview.api"
 import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
@@ -73,7 +73,7 @@ export const useInterview = () => {
         try {
             response = await generateResumePdf({ interviewReportId })
             if (response) {
-                const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
+                const url = window.URL.createObjectURL(new Blob([response], { type: "application/pdf" }))
                 const link = document.createElement("a")
                 const localWindowUrlContext = url;
                 link.href = localWindowUrlContext
@@ -91,14 +91,26 @@ export const useInterview = () => {
         }
     }
 
+    const getInterviewPlanPdf = async (interviewReportId) => {
+        const response = await generateInterviewPlanPdf({ interviewReportId })
+        const url = window.URL.createObjectURL(new Blob([response], { type: "application/pdf" }))
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `interview_plan_${interviewReportId}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
+    }
+
     useEffect(() => {
         if (interviewId) {
             getReportById(interviewId)
         } else {
             getReports()
         }
-    }, [ interviewId ])
+    }, [interviewId])
 
-    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf }
+    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf, getInterviewPlanPdf }
 
 }

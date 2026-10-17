@@ -6,7 +6,7 @@ if (typeof pdfParse !== "function" && pdfParse.default) {
 } else if (typeof pdfParse !== "function" && typeof pdfParse.parse === "function") {
     pdfParse = pdfParse.parse;
 }
-const { generateInterviewReport, generateResumePdf } = require("../services/ai.service")
+const { generateInterviewReport, generateResumePdf, generateInterviewPlanPdf } = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
 
 /**
@@ -166,4 +166,33 @@ async function generateResumePdfController(req, res) {
     }
 }
 
-module.exports = { generateInterViewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController }
+async function generateInterviewPlanPdfController(req, res) {
+    try {
+        const interviewReport = await interviewReportModel.findOne({
+            _id: req.params.interviewReportId,
+            user: req.user.id
+        }).select("title matchScore preparationPlan")
+
+        if (!interviewReport) {
+            return res.status(404).json({ message: "Interview report not found." })
+        }
+
+        const pdfBuffer = await generateInterviewPlanPdf(interviewReport)
+        res.set({
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="interview_plan_${interviewReport.id}.pdf"`
+        })
+        return res.end(Buffer.from(pdfBuffer))
+    } catch (error) {
+        console.error("Interview plan PDF generation failed:", error)
+        return res.status(500).json({ message: "Interview plan PDF generation failed." })
+    }
+}
+
+module.exports = {
+    generateInterViewReportController,
+    getInterviewReportByIdController,
+    getAllInterviewReportsController,
+    generateResumePdfController,
+    generateInterviewPlanPdfController
+}

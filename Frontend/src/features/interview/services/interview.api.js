@@ -80,3 +80,11 @@ export const generateResumePdf = async ({ interviewReportId }) => {
 
     return response.data
 }
+
+export const generateInterviewPlanPdf = async ({ interviewReportId }) => {
+    const response = await api.get(`/api/interview/plan/pdf/${interviewReportId}`, {
+        responseType: "blob"
+    })
+
+    return response.data
+}
